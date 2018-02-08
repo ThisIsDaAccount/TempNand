@@ -6,6 +6,9 @@ This is a Java library for editing DSi Nand Backups.
 Dependencies:
 https://github.com/waldheinz/fat32-lib
 
+Credits:
+Whoever made this: https://gist.github.com/jedi4ever/917196
+I used some of the code for reading/writing using fat32-lib
 What you can do with this:
 Write and read individual files to/from a nand backup file
 Create a new backup with the edits that you made, either decrypted, encrypted, or encrypted with the footer on it
