@@ -55,9 +55,7 @@ public class Main extends Application
 		{
 			Scanner ID = new Scanner (new File("consoleID.txt"));
 			consoleID = ID.next();
-			ID.close();
-			
-			
+			ID.close();			
 		}
 		
 		if (Files.exists(Paths.get("CID.txt")))
@@ -68,15 +66,17 @@ public class Main extends Application
 			
 			
 		}
-		//if(!Files.exists(Paths.get("DSi_Resources//tempNand_runSettings.dat")))
 		if (true)
 		{
 			
 			FileChannel channel = new RandomAccessFile(new File("tempNand_runSettings"), "rw").getChannel();
 			FileLock lock = channel.tryLock();
 			if(lock!=null)
+			{
 				launch(args);
-			else {
+			}
+			else 
+			{
 				System.exit(0);
 			}
 		}
@@ -84,137 +84,35 @@ public class Main extends Application
 	}
 
 	 @Override
-	  public void start(Stage primaryStage) {
-
-
-	    BorderPane root = new BorderPane();
-	    Scene scene = new Scene(root/*, 300, 250, Color.WHITE*/);
+	 public void start(Stage primaryStage) 
+	 {
+		 Stage secondaryWindow = new Stage();
+		 
+	   	 ArrayList <Button> buttons = new ArrayList <Button> ();
+	     BorderPane root = new BorderPane();
+	     Scene scene = new Scene(root);
 	    
-	 
-		Button button1 = new Button("Downgrade to 1.4");  
+		 Button button1 = new Button("Downgrade to 1.4");  
 	     button1.setDisable(true);
-	     button1.setOnAction(new EventHandler <ActionEvent> () {
-
-			public void handle(ActionEvent event) 
-			{	
-				DirectoryChooser directoryChooser = new DirectoryChooser();
-				directoryChooser.setTitle("Please select the NUSDownloader \"titles\" folder");
-                File selectedDirectory = 
-                        directoryChooser.showDialog(primaryStage);
-                
-                if(selectedDirectory != null){
-                    try 
-                    {
-                    	nand.downgradeTo1_4FromNUS(selectedDirectory.getAbsolutePath());
-					} catch (IOException e) 
-                    {
-						handleException(e);
-					}
-                }
-			}
-	    	 
-	     });
+	     button1.setOnAction(actionEvent -> downgradeTo1_4(primaryStage));
+	     
 	      //Creating button2 
 	      Button button2 = new Button("Install app");       
 	      button2.setDisable(true);
-	      button2.setOnAction(new EventHandler <ActionEvent> () {
-
-				public void handle(ActionEvent event) 
-				{	
-					TextInputDialog dialog = new TextInputDialog("");
-					 
-					dialog.setTitle("DsiWare app short ID");
-					dialog.setHeaderText("Enter your DSiWare app's 8-digit short ID:");
-					dialog.setContentText("DSiWare short ID:");
-					 
-
-					Optional<String> result = dialog.showAndWait();
-					if(result.isPresent() && result.get().length()== 8)
-					{
-						FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the DSiWare .app file", FileDialog.LOAD); 
-						fd.setVisible(true);
-						fd.dispose();
-						if(fd.getFile()!=null)
-							try {
-								nand.installApp(result.get(), fd.getDirectory()+fd.getFile());
-							} catch (IOException | InterruptedException e) {
-								// TODO Auto-generated catch block
-								handleException(e);
-							}
-					}
-				}
-		    	 
-		     });
+	      button2.setOnAction(actionEvent -> installApp());
 	      //Creating button3
 	      Button button3 = new Button("Install exploit app");       
 	      button3.setDisable(true);
-	      button3.setOnAction(new EventHandler <ActionEvent> () {
+	      button3.setOnAction(actionEvent -> installExploitApp(primaryStage, secondaryWindow));
 
-			@Override
-			public void handle(ActionEvent event) {
-				Stage newWindow = new Stage();
-				BorderPane root = new BorderPane();
-		        ChoiceBox choiceBox = new ChoiceBox();
+	      Button button4 = new Button("Install Unlaunch"); 
+	      button4.setOnAction(actionEvent -> installUnlaunch());
 
-		        Map <String, String> haxApps = new TreeMap <String, String> ();
-		        
-		        haxApps.put("Sudoku (USA)", "4b344445");
-		        haxApps.put("Sudoku (EUR)", "4b344456");
-		        haxApps.put("FieldRunners (USA)", "4b464445");
-		        haxApps.put("FieldRunners (EUR)", "4b464456");
-		        haxApps.put("Legends of Exidia (USA)", "4b4c4545");
-		        haxApps.put("Legends of Exidia (EUR)", "4b4c4556");
-		        haxApps.put("Legends of Exidia (JAP)", "4b4c454a");
-		        haxApps.put("Zelda - Four Swords (USA)", "4b513945");
-		        haxApps.put("Zelda - Four Swords (EUR)", "4b513956");
-		        
-		        choiceBox.getItems().addAll(haxApps.keySet());
-		        HBox hbox = new HBox(choiceBox);
-
-		        Button button1 = new Button("Install");
-		        button1.setOnAction(new EventHandler <ActionEvent> () {
-
-					@Override
-					public void handle(ActionEvent event) {
-						if(choiceBox.getValue()!=null)
-						{
-							FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the DSiWare .app file", FileDialog.LOAD); 
-							fd.setVisible(true);
-							fd.dispose();
-							if(fd.getFile()!=null)
-								try {
-									nand.installApp(haxApps.get((String)choiceBox.getValue()), fd.getDirectory()+fd.getFile());
-									nand.installHaxSave(haxApps.get((String)choiceBox.getValue()));
-								} catch (IOException | InterruptedException e) {
-									// TODO Auto-generated catch block
-									handleException(e);
-								}
-								newWindow.close();
-							}
-					}
-		        	
-		        });
-		        root.setBottom(button1);
-		        root.setCenter(hbox);
-                Scene secondScene = new Scene(root, 200, 75);
- 
-                // New window (Stage)
-                
-                newWindow.setTitle("Install exploit app");
-                newWindow.setScene(secondScene);
- 
-                // Set position of second window, related to primary window.
-                newWindow.setX(primaryStage.getX() + 200);
-                newWindow.setY(primaryStage.getY() + 100);
- 
-                newWindow.show();
-				
-			}
-	    	  
-	      });
-	      //Creating button4 
-	     // Button button4 = new Button("Button4");       
-	      //button4.setDisable(true);
+	      button4.setDisable(true);
+	      buttons.add(button1);
+	      buttons.add(button2);
+	      buttons.add(button3);
+	      buttons.add(button4);
 	      //Creating a Flow Pane 
 	      FlowPane flowPane = new FlowPane();    
 	       
@@ -223,392 +121,500 @@ public class Main extends Application
 	       
 	      //Setting the margin of the pane  
 	      flowPane.setMargin(button1, new Insets(20, 0, 20, 20)); 
-	       
+	      flowPane.setMargin(button2, new Insets(20, 0, 20, 20)); 
+	      flowPane.setMargin(button3, new Insets(20, 0, 20, 20)); 
+	      flowPane.setMargin(button4, new Insets(20, 0, 20, 20)); 
+	      
 	      //Retrieving the observable list of the flow Pane 
 	      ObservableList list = flowPane.getChildren(); 
 	      
 	      //Adding all the nodes to the flow pane 
-	      list.addAll(button1, button2, button3); 
-	        
-	      //Creating a scene object 
-	    //  Scene otherscene = new Scene(flowPane);  
+	      list.addAll(buttons); 
 	      
 	      //Setting title to the Stage 
 	      primaryStage.setTitle("TempNand"); 
 	    
 	    
-	    MenuBar menuBar = new MenuBar();
-	    menuBar.prefWidthProperty().bind(primaryStage.widthProperty());
-	    root.setTop(menuBar);
-	    root.setCenter(flowPane);
-	    // File menu - new, save, exit
-	    Menu fileMenu = new Menu("File");
-	    
-	    Menu nandOpenMenu = new Menu("Open");
-	    MenuItem decrypted = new MenuItem("Open Decrypted Nand");
-	    decrypted.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                try 
-                {
-					setupNand(false);
-				} catch (IllegalArgumentException e) {
-					Alert alert = new Alert(AlertType.ERROR);
-					alert.setTitle("IDs not found");
-					alert.setHeaderText("It appears that the CID and/or Console ID are not set up correctly.");
-
-					alert.showAndWait();
-					
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					handleException(e);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					handleException(e);
-				}
-            }
-        });
-	    
-	    MenuItem encrypted = new MenuItem("Open Encrypted Nand");
-	    encrypted.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                try {
-					setupNand(true);
-					if(nand!=null)
-						openNandButtons();
-					else
-					{
-						Alert alert = new Alert(AlertType.ERROR);
-						alert.setTitle("Nand not opened successfully");
-						alert.setHeaderText("A nand file valid for the given IDs was not provided.");
-
-						alert.showAndWait();
-					}
-				} catch (IllegalArgumentException e) {
-					Alert alert = new Alert(AlertType.ERROR);
-					alert.setTitle("IDs not found");
-					alert.setHeaderText("It appears that the CID and/or Console ID are not set up correctly.");
-
-					alert.showAndWait();
-					
-				} catch (IllegalStateException e) {
-					Alert alert = new Alert(AlertType.ERROR);
-					alert.setTitle("Improper Encryption");
-					alert.setHeaderText("The nand seems to be valid, but not properly encrypted.");
-
-					alert.showAndWait();
-                } catch (IOException e) {
-					// TODO Auto-generated catch block
-					handleException(e);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					handleException(e);
-				}
-            }
-
-			private void openNandButtons() 
-			{
-				button1.setDisable(false);
-				button2.setDisable(false);
-				button3.setDisable(false);
-			//	button4.setDisable(false);
-			}
-        });
-	    
-	    nandOpenMenu.getItems().addAll(encrypted);
-	    
-	    MenuItem saveMenuItem = new MenuItem("Save as");
-	    saveMenuItem.setOnAction(new EventHandler <ActionEvent> () {
-
-			@Override
-			public void handle(ActionEvent event) {
-				if(nand!=null)
-				{
-					FileDialog fd = new FileDialog((java.awt.Frame) null, "Save nand to?", FileDialog.SAVE); 
-					fd.setVisible(true);
-					fd.dispose();
-					try {
-						if(fd.getFile()!=null)
-							nand.encryptAndSave(fd.getDirectory()+fd.getFile(), false);
-					} 
-					catch(NoSuchFileException e)
-					{
-						
-					}
-					catch (IOException | InterruptedException e) {
-						// TODO Auto-generated catch block
-						handleException(e);
-					}
-				}
-				
-			}
-	    	
-	    });
-	    MenuItem saveNoCashItem = new MenuItem("Save for No$GBA");
-	    saveNoCashItem.setOnAction(new EventHandler <ActionEvent> () {
-
-			@Override
-			public void handle(ActionEvent event) {
-				if (nand != null)
-				{
-					FileDialog fd = new FileDialog((java.awt.Frame) null, "Save No$GBA nand to?", FileDialog.SAVE); 
-					fd.setVisible(true);
-					fd.dispose();
-					try 
-					{
-						if(fd.getFile()!=null) 
-						{
-							nand.encryptAndSave(fd.getDirectory()+fd.getFile(), true);
-						}
-					} 
-					catch(NoSuchFileException e)
-					{
-						
-					}
-					catch (IOException | InterruptedException e) {
-						// TODO Auto-generated catch block
-						handleException(e);
-					}
-				}
-			}
-	   
-	    });
-	    MenuItem saveDecrypted = new MenuItem("Save decrypted nand as");
-	    saveDecrypted.setOnAction(new EventHandler <ActionEvent> () {
-
-			@Override
-			public void handle(ActionEvent event) {
-				if (nand != null)
-				{
-					FileDialog fd = new FileDialog((java.awt.Frame) null, "Save No$GBA nand to?", FileDialog.SAVE); 
-					fd.setVisible(true);
-					fd.dispose();
-					try 
-					{
-						if(fd.getFile()!=null) 
-						{
-							nand.save(fd.getDirectory()+fd.getFile());
-							nand.makePost0(fd.getDirectory()+fd.getFile());
-						}
-							//nand.encryptAndSave(fd.getDirectory()+fd.getFile(), true);
-					} 
-					catch(NoSuchFileException e)
-					{
-						
-					}
-					catch (IOException e/* | InterruptedException e*/) {
-						// TODO Auto-generated catch block
-						handleException(e);
-					}
-				}
-				
-			}
-	    	
-	    });
-	    MenuItem exitMenuItem = new MenuItem("Exit");
-	    exitMenuItem.setOnAction(actionEvent -> Platform.exit());
-
-	    fileMenu.getItems().addAll(nandOpenMenu, saveMenuItem, saveNoCashItem, saveDecrypted);
-
-	    Menu setupMenu = new Menu("Setup");
-	    Menu CID = new Menu("CID");
-	    MenuItem typeCID = new MenuItem("Type in CID");
-	    MenuItem fetchCID = new MenuItem("Get CID from file");
-	    fetchCID.setOnAction(new EventHandler <ActionEvent> () {
-
-			@Override
-			public void handle(ActionEvent event) {
-				try {
-					verifyAndEnterCID(NandUtilities.extractCID());
-				} 
-				
-				catch (FileNotFoundException e)
-				{
-					
-				}
-				
-				catch (IOException e) {
-					
-					handleException(e);
-				}
-				
-				catch (IllegalStateException e)
-				{
-					Alert alert = new Alert(AlertType.ERROR);
-					alert.setTitle("Failed to obtain CID");
-					alert.setHeaderText("It appears that the file is an invalid CID.bin file");
-
-					alert.showAndWait();
-				}
-				
-			}
-	    	
-	    });
-	    typeCID.setOnAction(new EventHandler <ActionEvent> () {
-
-			@Override
-			public void handle(ActionEvent event) {try {
-				TextInputDialog dialog = new TextInputDialog("");
-				 
-				dialog.setTitle("CID");
-				dialog.setHeaderText("Enter your CID:");
-				dialog.setContentText("CID:");
-				 
-
-				Optional<String> result = dialog.showAndWait();
-				verifyAndEnterCID(result.get());
-				}
-				catch(NoSuchElementException e)
-				{
-					
-				}
-			catch(IllegalStateException e)
-			{
-				Alert alert = new Alert(AlertType.ERROR);
-				alert.setTitle("Not a valid ID");
-				alert.setHeaderText("The CID entered is invalid");
-
-				alert.showAndWait();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				handleException(e);
-			}
-			}
-	    	
-	    });
-	    CID.getItems().addAll(
-	    		fetchCID,
-		        typeCID);
-	    Menu consoleID = new Menu("Console ID");
-	    MenuItem typeConsoleID = new MenuItem("Type in Console ID");
-	    typeConsoleID.setOnAction(new EventHandler <ActionEvent> () {
-
-			@Override
-			public void handle(ActionEvent event) { 
-			try {
-					TextInputDialog dialog = new TextInputDialog("");
-					 
-					dialog.setTitle("Console ID");
-					dialog.setHeaderText("Enter your Console ID:");
-					dialog.setContentText("Console ID:");
-					 
+		  MenuBar menuBar = new MenuBar();
+		  menuBar.prefWidthProperty().bind(primaryStage.widthProperty());
+		  root.setTop(menuBar);
+		  root.setCenter(flowPane);
+		    
+		  // File menu
+		  Menu fileMenu = new Menu("File");
+		    
+		  Menu nandOpenMenu = new Menu("Open");
+		  MenuItem decrypted = new MenuItem("Open Decrypted Nand");
+		  decrypted.setOnAction(actionEvent -> openDecrypted());
+		    
+		  MenuItem encrypted = new MenuItem("Open Encrypted Nand");
+		  encrypted.setOnAction(actionEvent -> openEncrypted(buttons));
+		    
+		  nandOpenMenu.getItems().addAll(encrypted);
+		    
+		  MenuItem saveMenuItem = new MenuItem("Save as");
+		  saveMenuItem.setOnAction(actionEvent -> saveAs());
+		  MenuItem saveNoCashItem = new MenuItem("Save for No$GBA");
+		  saveNoCashItem.setOnAction(actionEvent -> saveForNO$GBA());
+		  MenuItem saveDecrypted = new MenuItem("Save decrypted nand as");
+		  saveDecrypted.setOnAction(actionEvent -> saveDecryptedAs());
+		  MenuItem exitMenuItem = new MenuItem("Exit");
+		  exitMenuItem.setOnAction(actionEvent -> Platform.exit());
 	
-					Optional<String> result = dialog.showAndWait();
-					verifyAndEnterConsoleID(result.get());
-				
-			}
-
-			catch(NoSuchElementException e)
+		  fileMenu.getItems().addAll(nandOpenMenu, saveMenuItem, saveNoCashItem, saveDecrypted);
+	
+		  Menu setupMenu = new Menu("Setup");
+		  Menu CID = new Menu("CID");
+		  MenuItem typeCID = new MenuItem("Type in CID");
+		  MenuItem fetchCID = new MenuItem("Get CID from file");
+		  fetchCID.setOnAction(actionEvent -> fetchCID());
+		  typeCID.setOnAction(actionEvent -> typeCID());
+		  CID.getItems().addAll(fetchCID, typeCID);
+		  Menu consoleID = new Menu("Console ID");
+		  MenuItem typeConsoleID = new MenuItem("Type in Console ID");
+		  typeConsoleID.setOnAction(eventHandler -> typeConsoleID());
+		  MenuItem fetchConsoleID = new MenuItem("Get ConsoleID from file");
+		  fetchConsoleID.setOnAction(actionEvent -> fetchConsoleID());
+		  consoleID.getItems().addAll(fetchConsoleID, typeConsoleID);
+		    
+		  setupMenu.getItems().addAll(CID, consoleID);
+		  menuBar.getMenus().addAll(fileMenu, setupMenu);
+	
+		  primaryStage.setScene(scene);
+		  primaryStage.setOnCloseRequest(actionEvent -> executeOnShutdown());
+		  primaryStage.show();
+	  }
+    
+	private void installUnlaunch() 
+	{
+		Alert alert = new Alert(AlertType.WARNING, "Unlaunch is currently not 100% brickproof, and could result in a bricked DSi under certain situations. Continue?", ButtonType.OK, ButtonType.CANCEL);
+		alert.setTitle("Do Not Attempt Without proper testing");
+		
+		Optional <ButtonType> result = alert.showAndWait();
+		if(result.get()== ButtonType.OK)
+		{
+			try
 			{
-				
+				FileDialog fd = new FileDialog((java.awt.Frame) null, "Please provide the unlaunch.dsi file", FileDialog.LOAD); 
+				fd.setVisible(true);
+				fd.dispose();
+				if(fd.getName()!=null)
+					nand.installUnlaunch(fd.getDirectory()+fd.getFile());
 			}
-			catch(IllegalStateException e)
+			catch(IOException e)
 			{
-				Alert alert = new Alert(AlertType.ERROR);
-				alert.setTitle("Not a valid ID");
-				alert.setHeaderText("The Console ID entered is invalid");
-
-				alert.showAndWait();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				handleException(e);
 			}
-			}
-	    });
-	    MenuItem fetchConsoleID = new MenuItem("Get ConsoleID from file");
-	    fetchConsoleID.setOnAction(new EventHandler <ActionEvent> () {
+		}
+	}
 
+	private void executeOnShutdown() 
+	{
+
+		if(nand!=null)
+		{
+			try 
+			{		
+				if(Files.exists(Paths.get("nand.bin")))
+					Files.delete(Paths.get("nand.bin"));
+				nand.close();
+			} 
+			catch (IOException e) 
+			{
+				handleException(e);
+			}
+		}
+	}
+
+	private void fetchConsoleID() 
+	{
+		try 
+		{
+			verifyAndEnterConsoleID(NandUtilities.extractConsoleID());
+		} 
+		catch(FileNotFoundException e)
+		{
 			
+		}
+		catch (IOException e) 
+		{
+			
+			handleException(e);
+		} 
+		catch (InterruptedException e) 
+		{
+			
+			handleException(e);
+		}
+		catch(IllegalStateException e)
+		{
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Not a valid ID");
+			alert.setHeaderText("It seems this file is not a valid SRL backup");
+
+			alert.showAndWait();
+		}
+	}
+
+	private void typeConsoleID() 
+	{
+		try 
+		{
+			TextInputDialog dialog = new TextInputDialog("");
+			 
+			dialog.setTitle("Console ID");
+			dialog.setHeaderText("Enter your Console ID:");
+			dialog.setContentText("Console ID:");
+			 
+
+			Optional<String> result = dialog.showAndWait();
+			verifyAndEnterConsoleID(result.get());
+		
+		}
+	
+		catch(NoSuchElementException e)
+		{
+			
+		}
+		catch(IllegalStateException e)
+		{
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Not a valid ID");
+			alert.setHeaderText("The Console ID entered is invalid");
+	
+			alert.showAndWait();
+		} 
+		catch (IOException e)
+		{
+			
+			handleException(e);
+		}
+	}
+
+	private void typeCID() 
+	{
+		try 
+		{
+			TextInputDialog dialog = new TextInputDialog("");
+			 
+			dialog.setTitle("CID");
+			dialog.setHeaderText("Enter your CID:");
+			dialog.setContentText("CID:");
+			 
+
+			Optional<String> result = dialog.showAndWait();
+			verifyAndEnterCID(result.get());
+		}
+			
+		catch(NoSuchElementException e)
+		{
+				
+		}
+		catch(IllegalStateException e)
+		{
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Not a valid ID");
+			alert.setHeaderText("The CID entered is invalid");
+
+			alert.showAndWait();
+		} 
+		catch (IOException e) 
+		{
+			
+			handleException(e);
+		}
+	}
+
+	private void fetchCID() 
+	{
+		try 
+		{
+			verifyAndEnterCID(NandUtilities.extractCID());
+		} 
+		
+		catch (FileNotFoundException e)
+		{
+			
+		}
+		
+		catch (IOException e) 
+		{
+			
+			handleException(e);
+		}
+		
+		catch (IllegalStateException e)
+		{
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Failed to obtain CID");
+			alert.setHeaderText("It appears that the file is an invalid CID.bin file");
+
+			alert.showAndWait();
+		}
+	}
+
+	private void saveDecryptedAs() 
+	{
+		if (nand != null)
+		{
+			FileDialog fd = new FileDialog((java.awt.Frame) null, "Save No$GBA nand to?", FileDialog.SAVE); 
+			fd.setVisible(true);
+			fd.dispose();
+			try 
+			{
+				if(fd.getFile()!=null) 
+				{
+					nand.save(fd.getDirectory()+fd.getFile());
+				}
+			} 
+			catch(NoSuchFileException e)
+			{
+				
+			}
+			catch (IOException e) 
+			{
+				
+				handleException(e);
+			}
+		}
+	}
+
+	private void saveForNO$GBA() 
+	{
+		if (nand != null)
+		{
+			FileDialog fd = new FileDialog((java.awt.Frame) null, "Save No$GBA nand to?", FileDialog.SAVE); 
+			fd.setVisible(true);
+			fd.dispose();
+			try 
+			{
+				if(fd.getFile()!=null) 
+				{
+					nand.encryptAndSave(fd.getDirectory()+fd.getFile(), true);
+				}
+			} 
+			catch(NoSuchFileException e)
+			{
+				
+			}
+			catch (IOException | InterruptedException e) 
+			{
+				
+				handleException(e);
+			}
+		}
+	}
+
+	private void saveAs() 
+	{
+		if(nand!=null)
+		{
+			FileDialog fd = new FileDialog((java.awt.Frame) null, "Save nand to?", FileDialog.SAVE); 
+			fd.setVisible(true);
+			fd.dispose();
+			try 
+			{
+				if(fd.getFile()!=null)
+					nand.encryptAndSave(fd.getDirectory()+fd.getFile(), false);
+			} 
+			catch(NoSuchFileException e)
+			{
+				
+			}
+			catch (IOException | InterruptedException e) 
+			{
+				handleException(e);
+			}
+		}
+		
+	}
+
+	private void openEncrypted(ArrayList<Button> buttons) 
+	{
+		try 
+		{
+			setupNand(true);
+			if(nand!=null)
+				openNandButtons(buttons);
+			else
+			{
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Nand not opened successfully");
+				alert.setHeaderText("A nand file valid for the given IDs was not provided.");
+
+				alert.showAndWait();
+			}
+		} 
+		catch (IllegalArgumentException e) 
+		{
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("IDs not found");
+			alert.setHeaderText("It appears that the CID and/or Console ID are not set up correctly.");
+
+			alert.showAndWait();
+			
+		} 
+		catch (IllegalStateException e) 
+		{
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Improper Encryption");
+			alert.setHeaderText("The nand seems to be valid, but not properly encrypted.");
+
+			alert.showAndWait();
+        } 
+		catch (IOException e) 
+		{
+			
+			handleException(e);
+		} 
+		catch (InterruptedException e) 
+		{
+			
+			handleException(e);
+		}
+	}
+
+	private void openDecrypted() 
+	{
+		try 
+        {
+			setupNand(false);
+		} 
+		catch (IllegalArgumentException e) 
+		{
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("IDs not found");
+			alert.setHeaderText("It appears that the CID and/or Console ID are not set up correctly.");
+
+			alert.showAndWait();
+			
+		} 
+		catch (IOException e) 
+		{
+			
+			handleException(e);
+		} 
+		catch (InterruptedException e) 
+		{
+			
+			handleException(e);
+		}
+	}
+
+	private void installExploitApp(Stage primaryStage, Stage newWindow) 
+	{
+		BorderPane root = new BorderPane();
+        ChoiceBox choiceBox = new ChoiceBox();
+
+        Map <String, String> haxApps = new TreeMap <String, String> ();
+        
+        haxApps.put("Sudoku (USA)", "4b344445");
+        haxApps.put("Sudoku (EUR)", "4b344456");
+        haxApps.put("FieldRunners (USA)", "4b464445");
+        haxApps.put("FieldRunners (EUR)", "4b464456");
+        haxApps.put("Legends of Exidia (USA)", "4b4c4545");
+        haxApps.put("Legends of Exidia (EUR)", "4b4c4556");
+        haxApps.put("Legends of Exidia (JAP)", "4b4c454a");
+        haxApps.put("Zelda - Four Swords (USA)", "4b513945");
+        haxApps.put("Zelda - Four Swords (EUR)", "4b513956");
+        
+        choiceBox.getItems().addAll(haxApps.keySet());
+        HBox hbox = new HBox(choiceBox);
+
+        Button button1 = new Button("Install");
+        button1.setOnAction(new EventHandler <ActionEvent> () 
+        {
 			public void handle(ActionEvent event) 
+			{
+				if(choiceBox.getValue()!=null)
+				{
+					FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the DSiWare .app file", FileDialog.LOAD); 
+					fd.setVisible(true);
+					fd.dispose();
+					if(fd.getFile()!=null)
+					{
+						try 
+						{
+							nand.installApp(haxApps.get((String)choiceBox.getValue()), fd.getDirectory()+fd.getFile());
+							nand.installHaxSave(haxApps.get((String)choiceBox.getValue()));
+						} 
+						catch (IOException | InterruptedException e) {
+							
+							handleException(e);
+						}
+						newWindow.close();
+					}
+				}
+			}
+        	
+        });
+        root.setBottom(button1);
+        root.setCenter(hbox);
+        Scene secondScene = new Scene(root, 200, 75);
+
+        // New window (Stage)
+        
+        newWindow.setTitle("Install exploit app");
+        newWindow.setScene(secondScene);
+
+        // Set position of second window, related to primary window.
+        newWindow.setX(primaryStage.getX() + 200);
+        newWindow.setY(primaryStage.getY() + 100);
+
+        newWindow.show();
+		
+	}
+
+	public void downgradeTo1_4 (Stage primaryStage)
+	{
+		DirectoryChooser directoryChooser = new DirectoryChooser();
+		directoryChooser.setTitle("Please select the NUSDownloader \"titles\" folder");
+        File selectedDirectory = 
+                directoryChooser.showDialog(primaryStage);
+        
+        if(selectedDirectory != null)
+        {
+            try 
+            {
+            	nand.downgradeTo1_4FromNUS(selectedDirectory.getAbsolutePath());
+			} 
+            catch (IOException e) 
+            {
+				handleException(e);
+			}
+        }
+	}
+	
+	public void installApp()
+	{
+		TextInputDialog dialog = new TextInputDialog("");
+		 
+		dialog.setTitle("DsiWare app short ID");
+		dialog.setHeaderText("Enter your DSiWare app's 8-digit short ID:");
+		dialog.setContentText("DSiWare short ID:");
+		 
+
+		Optional<String> result = dialog.showAndWait();
+		if(result.isPresent() && result.get().length()== 8)
+		{
+			FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the DSiWare .app file", FileDialog.LOAD); 
+			fd.setVisible(true);
+			fd.dispose();
+			if(fd.getFile()!=null)
 			{
 				try 
 				{
-					verifyAndEnterConsoleID(NandUtilities.extractConsoleID());
-					
-					
+					nand.installApp(result.get(), fd.getDirectory()+fd.getFile());
 				} 
-				catch(FileNotFoundException e)
-				{
-					
-				}
-				catch (IOException e) 
-				{
-					// TODO Auto-generated catch block
-					handleException(e);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
+				catch (IOException | InterruptedException e) 
+				{		
 					handleException(e);
 				}
-				catch(IllegalStateException e)
-				{
-					Alert alert = new Alert(AlertType.ERROR);
-					alert.setTitle("Not a valid ID");
-					alert.setHeaderText("It seems this file is not a valid SRL backup");
-
-					alert.showAndWait();
-				}
-				
 			}
-	    
-	    });
-	    consoleID.getItems().addAll(
-	    		fetchConsoleID,
-		        typeConsoleID);
-	    
-	    setupMenu.getItems().addAll(CID, consoleID);
-	    menuBar.getMenus().addAll(fileMenu, setupMenu);
-
-	    primaryStage.setScene(scene);
-	    primaryStage.setOnCloseRequest(new EventHandler <WindowEvent> () {
-
-			@Override
-			public void handle(WindowEvent event) {
-				if(nand!=null)
-					try {		
-						if(Files.exists(Paths.get("nand.bin")))
-							Files.delete(Paths.get("nand.bin"));/*
-						if(Files.exists(Paths.get("DSi_Resources//nand.bin.pre")))
-							Files.delete(Paths.get("DSi_Resources//nand.bin.pre"));
-						if(Files.exists(Paths.get("DSi_Resources//nand.bin.post")))
-							Files.delete(Paths.get("DSi_Resources//nand.bin.post"));
-						if(Files.exists(Paths.get("DSi_Resources//nand.bin.partition0")))
-							Files.delete(Paths.get("DSi_Resources//nand.bin.partition0"));
-						*/
-						nand.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						handleException(e);
-					}
-				
-			}});
-	    primaryStage.show();
-	  }
-    
-	private static void setupConsoleID() throws IOException, InterruptedException, IllegalStateException
-	{
-		FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the DSiWare extract from System Settings", FileDialog.LOAD); 
-		fd.setVisible(true);
-		fd.dispose();
-		String path = fd.getDirectory()+fd.getName();
-		String consoleID = NandUtilities.extractCID(path);
-		verifyAndEnterConsoleID(consoleID);
-	}
-
-	private static void setupCID() throws IOException, InterruptedException, IllegalStateException
-	{
-		FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the CID.bin file", FileDialog.LOAD); 
-		fd.setVisible(true);
-		fd.dispose();
-		String path = fd.getDirectory()+fd.getName();
-		String CID = NandUtilities.extractConsoleID(path);
-		if(CID == null || CID.length()!=32)
-		{
-			throw new IllegalStateException();
 		}
 	}
 	
-	private static void verifyAndEnterConsoleID(String possibleID) throws IOException
+	private void verifyAndEnterConsoleID(String possibleID) throws IOException
 	{
 		if(possibleID == null || possibleID.length()!=16)
 		{
@@ -628,7 +634,7 @@ public class Main extends Application
 	
 	
 	
-	private static void verifyAndEnterCID(String possibleID) throws IOException
+	private void verifyAndEnterCID(String possibleID) throws IOException
 	{
 		if(possibleID == null || !Pattern.compile("^([A-Fa-f0-9]{32})$").matcher(possibleID).matches())
 		{
@@ -690,7 +696,8 @@ public class Main extends Application
 		alert.setTitle("An error has occurred");
 		Optional<ButtonType> result = alert.showAndWait();
 
-		if (result.get() == ButtonType.OK) {
+		if (result.get() == ButtonType.OK) 
+		{
 			try
 			{
 				FileDialog fd = new FileDialog((java.awt.Frame) null, "Save error description to?", FileDialog.SAVE); 
@@ -714,5 +721,11 @@ public class Main extends Application
 			}
 		}
 		
+	}
+	
+	private void openNandButtons(ArrayList <Button> buttons)
+	{
+		for (Button button : buttons)
+			button.setDisable(false);
 	}
 }
