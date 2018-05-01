@@ -1,10 +1,14 @@
 import java.awt.FileDialog;
 import java.awt.Frame;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
@@ -44,6 +48,10 @@ public class Main extends Application
 
 		if(Files.exists(Paths.get("nand.bin")))
 			Files.delete(Paths.get("nand.bin"));
+		if(Files.exists(Paths.get("SRL.bin")))
+			Files.delete(Paths.get("SRL.bin"));
+		if(Files.exists(Paths.get("nand_init.bin")))
+			Files.delete(Paths.get("nand_init.bin"));
 		if(Files.exists(Paths.get("DSi_Resources//nand.bin.pre")))
 			Files.delete(Paths.get("DSi_Resources//nand.bin.pre"));
 		if(Files.exists(Paths.get("DSi_Resources//nand.bin.post")))
@@ -187,7 +195,8 @@ public class Main extends Application
     
 	private void installUnlaunch() 
 	{
-		Alert alert = new Alert(AlertType.WARNING, "Unlaunch is currently not 100% brickproof, and could result in a bricked DSi under certain situations. Continue?", ButtonType.OK, ButtonType.CANCEL);
+		Alert alert = new Alert(AlertType.WARNING, "Unlaunch is currently not 100% brickproof, and could result "
+				+ "in a bricked DSi under certain situations. Continue?", ButtonType.OK, ButtonType.CANCEL);
 		alert.setTitle("Do Not Attempt Without proper testing");
 		
 		Optional <ButtonType> result = alert.showAndWait();
@@ -195,10 +204,11 @@ public class Main extends Application
 		{
 			try
 			{
-				FileDialog fd = new FileDialog((java.awt.Frame) null, "Please provide the unlaunch.dsi file", FileDialog.LOAD); 
+				FileDialog fd = new FileDialog((java.awt.Frame) null, "Please provide the "
+						+ "unlaunch.dsi file", FileDialog.LOAD); 
 				fd.setVisible(true);
 				fd.dispose();
-				if(fd.getName()!=null)
+				if(fd.getFile()!=null)
 					nand.installUnlaunch(fd.getDirectory()+fd.getFile());
 			}
 			catch(IOException e)
@@ -461,6 +471,7 @@ public class Main extends Application
 			alert.setHeaderText("The nand seems to be valid, but not properly encrypted.");
 
 			alert.showAndWait();
+			handleException(e);
         } 
 		catch (IOException e) 
 		{
@@ -528,7 +539,8 @@ public class Main extends Application
 			{
 				if(choiceBox.getValue()!=null)
 				{
-					FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the DSiWare .app file", FileDialog.LOAD); 
+					FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to "
+							+ "the DSiWare .app file", FileDialog.LOAD); 
 					fd.setVisible(true);
 					fd.dispose();
 					if(fd.getFile()!=null)
@@ -597,7 +609,8 @@ public class Main extends Application
 		Optional<String> result = dialog.showAndWait();
 		if(result.isPresent() && result.get().length()== 8)
 		{
-			FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the DSiWare .app file", FileDialog.LOAD); 
+			FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the "
+					+ "DSiWare .app file", FileDialog.LOAD); 
 			fd.setVisible(true);
 			fd.dispose();
 			if(fd.getFile()!=null)
@@ -658,7 +671,8 @@ public class Main extends Application
 		{
 			throw new IllegalArgumentException();
 		}
-		FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the encrypted nand backup", FileDialog.LOAD); 
+		FileDialog fd = new FileDialog((java.awt.Frame) null, "Please navigate to the "
+				+ "encrypted nand backup", FileDialog.LOAD); 
 		fd.setVisible(true);
 		fd.dispose();
 		
@@ -667,10 +681,25 @@ public class Main extends Application
 			Files.copy(Paths.get(fd.getDirectory()+fd.getFile()), Paths.get("nand_init.bin"));
 			if(encrypted)
 			{
-				String command = "twltool nandcrypt --cid " + CID + " --consoleid " + consoleID + " --in nand_init.bin --out nand.bin";
+				String command = "twltool nandcrypt --cid " + CID + " --consoleid " + consoleID + 
+						" --in nand_init.bin --out nand.bin";
 				Runtime rt = Runtime.getRuntime();
 				Process p = rt.exec(command);
 				p.waitFor();
+				
+				if(RUN_SETTINGS.DEBUG)
+				{
+					RUN_SETTINGS.debug_log().println("\n"+ command);
+					InputStream in = p.getInputStream();
+					RUN_SETTINGS.debug_log().println("\n");
+					BufferedReader read = new BufferedReader(new InputStreamReader(in));
+					String line = read.readLine();
+					while(line!=null)
+					{
+						RUN_SETTINGS.debug_log().println(line);
+						line = read.readLine();
+					}
+				}
 				Files.delete(Paths.get("nand_init.bin"));
 			}
 			else
@@ -687,10 +716,24 @@ public class Main extends Application
 	
 	public static void handleException(Exception e) 
 	{
-		
+		if(RUN_SETTINGS.DEBUG)
+		{
+			try
+			{
+				RUN_SETTINGS.debug_log().println("An Exception Was Encountered. Stack trace: \n");
+				e.printStackTrace(RUN_SETTINGS.debug_log());
+				System.out.println();
+				
+			}
+			catch(Exception e1)
+			{
+				
+			}
+		}
 		Alert alert = 
 		        new Alert(AlertType.ERROR, 
-		            "An error has occurred, a description will be generated. Would you like to save the description?",
+		            "An error has occurred, a description will be generated."
+		            + " Would you like to save the description?",
 		             ButtonType.OK, 
 		             ButtonType.CANCEL);
 		alert.setTitle("An error has occurred");
